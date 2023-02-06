@@ -1,9 +1,10 @@
 from typing import Tuple, Dict, List, Iterator
 import os
+import re
 
 rel_file_path = 'data/words.txt'
-
-words_dict = {}
+mapped_words = []
+exclude_words = 'в на по у под над к с и а для не при из'.split()
 
 
 def prepare_data() -> str:
@@ -15,30 +16,42 @@ def prepare_data() -> str:
 
 
 def run(text: str) -> None:
-    for word in text.split():
-        for key, value in mapper(word):
-            shuffler(key, value)
+    mapper(text)
 
-    for key in words_dict.keys():
-        word, res_value = reducer(key, words_dict[key])
-        print(f'{word}: {res_value}')
+    results = []
+    for word, lst in shuffler():
+        results.append(reducer(word, lst))
 
-
-def mapper(word: str) -> Iterator[Tuple[str, int]]:
-    yield word, 1
+    for value, word in sorted(results):
+        print(f'{-value} {word}')
 
 
-def shuffler(word: str, value: int) -> None:
-    if word not in words_dict.keys():
-        words_dict[word] = [value]
-    else:
-        word_list = words_dict[word]
-        word_list.append(value)
-        words_dict[word] = word_list
+def mapper(text: str) -> None:
+    for word in re.findall(r'[\w]+', text):  # text.split():
+        if word.lower() not in exclude_words:
+            mapped_words.append((word.lower(), 1))
 
 
-def reducer(word: str, values: List[int]) -> Tuple[str, int]:
-    return word, sum(values)
+def shuffler() -> Iterator[Tuple[str, List[int]]]:
+    new_words = sorted(mapped_words)
+
+    buffer = []
+    prev_word = None
+    for word, value in new_words:
+        if prev_word == word:
+            buffer.append(value)
+        else:
+            if prev_word is not None:
+                yield prev_word, buffer
+            buffer = [value]
+        prev_word = word
+
+    if buffer:
+        yield prev_word, buffer
+
+
+def reducer(word: str, values: List[int]) -> Tuple[int, str]:
+    return -sum(values), word
 
 
 if __name__ == '__main__':
