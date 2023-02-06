@@ -1,22 +1,41 @@
 from typing import Tuple, Dict, List, Iterator
 import os
 import re
+from threading import Thread
 
-rel_file_path = 'data/words.txt'
+input_dir = 'data/'
 mapped_words = []
 exclude_words = 'в на по у под над к с и а для не при из'.split()
 
 
-def prepare_data() -> str:
-    cur_dir = os.path.dirname(__file__)
-    file_path = os.path.join(cur_dir, rel_file_path)
-    with open(file_path, 'r', encoding='utf8') as f:
-        contents = f.read()
-        return contents
-
-
-def run(text: str) -> None:
+def handle_path(text: str):
     mapper(text)
+
+    results = []
+    for word, lst in shuffler():
+        results.append(reducer(word, lst))
+
+    for value, word in sorted(results):
+        print(f'{-value} {word}')
+
+
+def run() -> None:
+    cur_dir = os.path.dirname(__file__)
+
+    dir_path = os.path.join(cur_dir, input_dir)
+    f = []
+
+    threads = []
+    for file_path in os.listdir(dir_path):
+        full_file_path = os.path.join(dir_path, file_path)
+        with open(full_file_path, 'r', encoding='utf8') as f:
+            content = f.read()
+            thread = Thread(target=mapper, args=(content, ))
+            threads.append(thread)
+            thread.start()
+
+    for thread in threads:
+        thread.join()
 
     results = []
     for word, lst in shuffler():
@@ -55,8 +74,7 @@ def reducer(word: str, values: List[int]) -> Tuple[int, str]:
 
 
 if __name__ == '__main__':
-    data = prepare_data()
-    run(data)
+    run()
 
 
 
