@@ -2,28 +2,19 @@ from typing import Tuple, Dict, List, Iterator
 import os
 import re
 from threading import Thread
+import time
 
 input_dir = 'data/'
 mapped_words = []
 exclude_words = 'в на по у под над к с и а для не при из'.split()
 
 
-def handle_path(text: str):
-    mapper(text)
-
-    results = []
-    for word, lst in shuffler():
-        results.append(reducer(word, lst))
-
-    for value, word in sorted(results):
-        print(f'{-value} {word}')
-
-
 def run() -> None:
+    start_time = time.time()
+
     cur_dir = os.path.dirname(__file__)
 
     dir_path = os.path.join(cur_dir, input_dir)
-    f = []
 
     threads = []
     for file_path in os.listdir(dir_path):
@@ -43,6 +34,8 @@ def run() -> None:
 
     for value, word in sorted(results):
         print(f'{-value} {word}')
+
+    print(f'multithreading time: {time.time() - start_time}')
 
 
 def mapper(text: str) -> None:
